@@ -21,5 +21,20 @@ func initConcurrency(limitFromOption int) {
 				}
 			}
 		}
+		if limit <= 0 {
+			limit = 4
+		}
+		slotCh = make(chan struct{}, limit)
 	})
+}
+
+func acquireSlot() func() {
+	slotCh <- struct{}{}
+	released := false
+	return func() {
+		if !released {
+			released = true
+			<-slotCh
+		}
+	}
 }
